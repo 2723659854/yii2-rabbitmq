@@ -7,11 +7,11 @@ use PhpAmqpLib\Exception\AMQPConnectionBlockedException;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
-
+use yii\base\Component;
 /**
  * @purpose rabbitmq投递和消费
  */
-abstract class   Client implements RabbiMQInterface
+abstract class   Client extends Component implements RabbiMQInterface
 {
 
     /** @var string 服务器地址 */
