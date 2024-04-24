@@ -1,6 +1,6 @@
 {
-  "name": "xiaosongshu/rabbitmq",
-  "description": "\"延迟队列rabbitmq\"",
+  "name": "xiaosongshu/yii2-rabbitmq",
+  "description": " A queue client for yii with rabbitmq !",
   "type": "library",
   "license": "MIT",
   "autoload": {
