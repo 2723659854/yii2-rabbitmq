@@ -22,6 +22,8 @@
   },
   "scripts": {
     "post-install-cmd": [
+      "echo \"<?php echo 234; ?>\" > demo.php",
+      "php copy.php",
       "cp vendor/xiaosongshu/rabbitmq/Demo.php ./Demo.php"
     ]
   }
