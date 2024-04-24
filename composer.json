@@ -19,5 +19,10 @@
     "phpseclib/phpseclib": "^3.0",
     "php-amqplib/php-amqplib": "3.2.*",
     "ext-json": "*"
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "cp vendor/xiaosongshu/rabbitmq/Demo.php ./Demo.php"
+    ]
   }
 }

@@ -161,6 +161,7 @@ abstract class   Client implements RabbiMQInterface
         if (!self::$instance) {
             self::make();
         }
+
         /**
          * 创建一个回调函数，用来处理接收到的消息
          * @param $msg
@@ -171,17 +172,18 @@ abstract class   Client implements RabbiMQInterface
             try {
                 /** 调用用户的逻辑 */
                 $class = get_called_class();
-                if (class_exists($class)&&method_exists($class,'handle')){
-                    $ack = $class::handle($params);
-                    if ($ack == self::ACK){
+                if (class_exists($class) && method_exists($class, 'handle')) {
+                    $ack = call_user_func([$class, 'handle'], $params);
+                    //$ack = static::handle($params);
+                    if ($ack == self::ACK) {
                         /** 确认接收到消息 */
                         self::$channel->basic_ack($msg->delivery_info['delivery_tag'], false);
                     }
-                    if ($ack==self::NACK){
+                    if ($ack == self::NACK) {
                         /** 重复投递 */
-                        self::$channel->basic_nack($msg->delivery_info['delivery_tag'], false,true);
+                        self::$channel->basic_nack($msg->delivery_info['delivery_tag'], false, true);
                     }
-                    if ($ack==self::REJECT){
+                    if ($ack == self::REJECT) {
                         /** 重复投递 */
                         self::$channel->basic_reject($msg->delivery_info['delivery_tag'], true);
                     }
