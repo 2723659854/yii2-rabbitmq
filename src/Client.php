@@ -10,30 +10,22 @@ use PhpAmqpLib\Wire\AMQPTable;
 
 /**
  * @purpose rabbitmq投递和消费
- * @example 投递普通消息  (new Client())->send(['status'=>200,'msg'=>date('Y-m-d H:i:s')]);
- * @example 消费消息 方式1：
- * $rabbit = new Client();
- * $rabbit->callback=function($params){ var_dump($params); };
- * $rabbit->consume();
- * @example 消费消息 方式2：继承Client ,然后重写handle方法。
- * @note 如果需要投递延迟消息，需要安装延迟插件，投递消息：(new Client())->send(array $msg,int $time=2); 延迟时间单位秒
  */
 abstract class   Client implements RabbiMQInterface
 {
 
     /** @var string 服务器地址 */
-    private static $host = "127.0.0.1";
+    public static $host = "";
     /** @var int 服务器端口 */
-    private static $port = 5672;
+    public static $port = 5672;
     /** @var string 服务器登陆用户 */
-    private static $user = "guest";
+    public static $user = "guest";
     /** @var string 服务器登陆密码 */
-    private static $pass = "guest";
+    public static $pass = "guest";
     /** @var \PhpAmqpLib\Channel\AbstractChannel|\PhpAmqpLib\Channel\AMQPChannel 渠道通道 */
     private static $channel;
     /** @var AMQPStreamConnection rabbitmq连接 */
     private static $connection;
-
 
     /** @var int 过期时间 */
     public static $timeOut = 0;
@@ -58,25 +50,39 @@ abstract class   Client implements RabbiMQInterface
     const NACK = 2;
     /** 消费失败，支持重复投递一次 */
     const REJECT = 3;
+    /**
+     * rabbitmq链接
+     * @var AMQPStreamConnection|null
+     */
+    private static ?AMQPStreamConnection $instance;
 
-    public static $instance;
+    public function __construct(array $config)
+    {
+        self::$host = $config['host'] ?? self::$host;
+        self::$port = $config['port'] ?? self::$port;
+        self::$user = $config['user'] ?? self::$user;
+        self::$pass = $config['pass'] ?? self::$pass;
+        self::$exchangeName = $config['exchangeName'] ?? self::$exchangeName;
+        self::$queueName = $config['queueName'] ?? self::$queueName;
+        self::$type = $config['type'] ?? self::$type;
+    }
 
     /**
-     * 初始化rabbitmq连接
-     * @param string $exchangeName 交换机名称
-     * @param string $queueName 队列名称
-     * @param string $type 交换机类型，如果需要延迟消费，则需要安装延迟插件
-     * @param array $hostConfig rabbitmq配置
+     * 初始化相关配置，建立链接
+     * @return void
      */
     private static function make()
     {
+        /** 初始化订阅方式 */
         if (!self::$type) {
             self::$type = self::EXCHANGETYPE_DIRECT;
         }
         $className = get_called_class();
+        /** 初始化交换机 */
         if (!self::$exchangeName) {
             self::$exchangeName = $className;
         }
+        /** 初始化队列 */
         if (!self::$queueName) {
             self::$queueName = $className;
         }
@@ -95,6 +101,7 @@ abstract class   Client implements RabbiMQInterface
         self::$channel->queue_declare(self::$queueName, false, true, false, false);
         /** 将队列绑定到交换机 同时设置路由，*/
         self::$channel->queue_bind(self::$queueName, self::$exchangeName, self::$queueName);
+        /** 保存链接 */
         self::$instance = self::$connection;
     }
 
@@ -102,11 +109,10 @@ abstract class   Client implements RabbiMQInterface
      * 创建延迟信息
      * @param string $msg 消息内容
      * @param int $time 延迟时间 必须安装延迟插件，否则不能使用
-     * @return AMQPMessage 包装时候的消息
+     * @return AMQPMessage 包装后的消息
      */
     private static function createMessageDelay(string $msg, int $time = 0): object
     {
-        /** @var  $delayConfig [] 初始化消息配置 */
         $delayConfig = [
             /** 传递模式   消息持久化 ，这一个配置是消费确认发送ack的根本原因*/
             'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
@@ -115,7 +121,7 @@ abstract class   Client implements RabbiMQInterface
             /** 消息表头 设置延迟时间  延迟可以精确到毫秒 */
             $delayConfig['application_headers'] = new AMQPTable(['x-delay' => $time * 1000]);
         }
-        /** @var  $msg AMQPMessage 生成消息对象 */
+
         return new AMQPMessage($msg, $delayConfig);
     }
 
@@ -128,6 +134,7 @@ abstract class   Client implements RabbiMQInterface
      */
     private static function sendDelay(string $msg, int $delay = 0)
     {
+        /** 检查链接 */
         if (!self::$connection) {
             self::make();
         }
@@ -158,6 +165,7 @@ abstract class   Client implements RabbiMQInterface
      */
     private static function consumeDelay()
     {
+        /** 检查链接 */
         if (!self::$instance) {
             self::make();
         }
@@ -187,6 +195,8 @@ abstract class   Client implements RabbiMQInterface
                         /** 重复投递 */
                         self::$channel->basic_reject($msg->delivery_info['delivery_tag'], true);
                     }
+                } else {
+                    throw new \Exception("No 'handle' method found");
                 }
 
             } catch (\Exception|\RuntimeException $exception) {
@@ -201,7 +211,7 @@ abstract class   Client implements RabbiMQInterface
         //TODO 这里没有处理死信队列
         self::$channel->basic_consume(self::$queueName, self::$queueName, false, false, false, false, $function);
         /** 如果有配置了回调方法，则等待接收消息。这里不建议休眠，因为设置了消息确认，会导致rabbitmq疯狂发送消息，如果取消了消息确认，休眠会导致消息丢失 */
-        while (count(self::$channel->callbacks) || true) {
+        while (count(self::$channel->callbacks)) {
             self::$channel->wait();
         }
         self::close();
@@ -209,8 +219,8 @@ abstract class   Client implements RabbiMQInterface
 
     /**
      * 发送消息
-     * @param array $msg
-     * @param int $time
+     * @param array $msg 消息内容
+     * @param int $time 延迟时间
      * @return void
      * @throws \Exception
      */
@@ -219,13 +229,14 @@ abstract class   Client implements RabbiMQInterface
         self::sendDelay(json_encode($msg), $time);
     }
 
+    /**
+     * 开启消费
+     * @return void
+     * @throws \Exception
+     * @comment 本函数是阻塞的
+     */
     public static function consume()
     {
         self::consumeDelay();
-    }
-
-    public static function say()
-    {
-        echo "happy";
     }
 }
