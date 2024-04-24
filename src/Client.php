@@ -50,22 +50,8 @@ abstract class   Client implements RabbiMQInterface
     const NACK = 2;
     /** 消费失败，支持重复投递一次 */
     const REJECT = 3;
-    /**
-     * rabbitmq链接
-     * @var AMQPStreamConnection|null
-     */
-    private static ?AMQPStreamConnection $instance;
-
-    public function __construct(array $config)
-    {
-        self::$host = $config['host'] ?? self::$host;
-        self::$port = $config['port'] ?? self::$port;
-        self::$user = $config['user'] ?? self::$user;
-        self::$pass = $config['pass'] ?? self::$pass;
-        self::$exchangeName = $config['exchangeName'] ?? self::$exchangeName;
-        self::$queueName = $config['queueName'] ?? self::$queueName;
-        self::$type = $config['type'] ?? self::$type;
-    }
+    /** rabbitmq链接 */
+    private static  $instance = null;
 
     /**
      * 初始化相关配置，建立链接
@@ -152,10 +138,12 @@ abstract class   Client implements RabbiMQInterface
      */
     public static function close()
     {
-        /** 发布完成后关闭通道 */
-        self::$channel->close();
-        /** 发布完成后关闭连接 */
-        self::$connection->close();
+        if (self::$instance){
+            /** 发布完成后关闭通道 */
+            self::$channel->close();
+            /** 发布完成后关闭连接 */
+            self::$connection->close();
+        }
     }
 
     /**
@@ -181,6 +169,7 @@ abstract class   Client implements RabbiMQInterface
                 /** 调用用户的逻辑 */
                 $class = get_called_class();
                 if (class_exists($class) && method_exists($class, 'handle')) {
+                    /** 处理业务逻辑 */
                     $ack = call_user_func([$class, 'handle'], $params);
                     //$ack = static::handle($params);
                     if ($ack == self::ACK) {
@@ -218,15 +207,14 @@ abstract class   Client implements RabbiMQInterface
     }
 
     /**
-     * 发送消息
+     * 投递消息
      * @param array $msg 消息内容
      * @param int $time 延迟时间
      * @return void
      * @throws \Exception
      */
-    public static function send(array $msg, int $time = 0)
+    public static function publish(array $msg, int $time = 0)
     {
-        var_dump('发送');
         self::sendDelay(json_encode($msg), $time);
     }
 

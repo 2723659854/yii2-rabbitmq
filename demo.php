@@ -1,9 +1,11 @@
 <?php
+namespace root\yanglong;
 
-namespace Xiaosongshu\Rabbitmq;
+require_once __DIR__.'/vendor/autoload.php';
 
 /**
- * @purpose 我只是一个demo示例
+ * demo
+ * @purpose 定义一个队列演示
  */
 class Demo extends \Xiaosongshu\Rabbitmq\Client
 {
@@ -30,14 +32,15 @@ class Demo extends \Xiaosongshu\Rabbitmq\Client
     {
         //TODO 这里写你的业务逻辑
         // ...
+        var_dump($params);
         return self::ACK;
         //return self::NACK;
     }
 }
 
 /** 投递普通消息 */
-Demo::send(['name' => '张三']);
+\root\yanglong\Demo::publish(['name' => 'tom']);
+\root\yanglong\Demo::publish(['name' => 'jim']);
+\root\yanglong\Demo::publish(['name' => 'jack']);
 /** 开启消费 */
-Demo::consume();
-/** 关闭消费者 */
-Demo::close();
+\root\yanglong\Demo::consume();

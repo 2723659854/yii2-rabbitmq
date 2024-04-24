@@ -5,9 +5,14 @@
 ```shell
 composer require xiaosongshu/yii2-rabbitmq
 ```
+
 ### 示例 demo
+
+#### 定义一个队列 queue
+
 ```php
 <?php
+namespace app\commands;
 
 require_once __DIR__.'/vendor/autoload.php';
 
@@ -42,15 +47,53 @@ class Demo extends \Xiaosongshu\Rabbitmq\Client
     }
 }
 
-/** 投递普通消息 */
-Demo::send(['name' => '张三']);
-/** 开启消费，本函数是阻塞的 */
-Demo::consume();
-/** 关闭消费者 */
-Demo::close();
 ```
-### 异常
+
+#### 投递消息 publish
+```php 
+\app\commands\Demo::publish(['name'=>'tome','age'=>15]);
+```
+你可以在任何地方投递消息。
+
+####   开启消费
+```php
+\app\commands\Demo::consume();
+```
+你可以把消费者放到command命令行里面，使用命令行执行队列消费。举个例子：
+```php 
+<?php
+
+namespace app\commands;
+
+use yii\console\Controller;
+
+/**
+ * @purpose 开启队列消费
+ * @note 我只是一个例子
+ */
+class QueueController extends Controller
+{
+
+    /**
+     * @api php yii queue/index
+     * @return void
+     * @throws \Exception
+     * @comment 开启消费者
+     */
+    public function actionIndex()
+    {
+        Demo::consume();
+    }
+}
+```
+开启消费者命令 consume
+```bash
+php yii queue/index
+```
+### 异常 Exception
+
 队列使用过程中请使用 \RuntimeException和\Exception捕获异常
+
 #### 若需要使用延迟队列，那么rabbitmq服务需要安装延迟插件，否则会报错
 
 ##### 联系作者：2723659854@qq.com
