@@ -33,5 +33,10 @@
     "pre-update-cmd": [
       "php -r \"echo 'Pre update script executed';\""
     ]
+  },
+  "extra": {
+    "post-install-cmd": [
+      "echo 'Extra post install command executed';"
+    ]
   }
 }
