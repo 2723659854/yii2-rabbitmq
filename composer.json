@@ -22,13 +22,16 @@
   },
   "scripts": {
     "post-install-cmd": [
-      "@php ./vendor/xiaosongshu/rabbitmq/demo.php"
+      "php -r \"echo 'Post install script executed';\""
     ],
-    "post-package-install": [
-      "@php ./vendor/xiaosongshu/rabbitmq/demo.php"
+    "post-update-cmd": [
+      "php -r \"echo 'Post update script executed';\""
     ],
-    "post-package-update": [
-      "@php ./vendor/xiaosongshu/rabbitmq/demo.php"
+    "pre-install-cmd": [
+      "php -r \"echo 'Pre install script executed';\""
+    ],
+    "pre-update-cmd": [
+      "php -r \"echo 'Pre update script executed';\""
     ]
   }
 }
