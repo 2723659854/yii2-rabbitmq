@@ -223,4 +223,9 @@ abstract class   Client implements RabbiMQInterface
     {
         self::consumeDelay();
     }
+
+    public static function say()
+    {
+        echo "happy";
+    }
 }
