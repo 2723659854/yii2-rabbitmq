@@ -21,8 +21,8 @@
     "ext-json": "*"
   },
   "scripts": {
-    "post-package-install": [
-      "php ./copy.php"
+    "post-package-install-cmd": [
+      "echo 9999; "
     ]
   }
 }
