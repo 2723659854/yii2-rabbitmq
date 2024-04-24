@@ -22,13 +22,13 @@
   },
   "scripts": {
     "post-install-cmd": [
-      "\\Xiaosongshu\\Rabbitmq\\Client::say"
+      "@php ./vendor/xiaosongshu/rabbitmq/demo.php"
     ],
     "post-package-install": [
-      "\\Xiaosongshu\\Rabbitmq\\Client::say"
+      "@php ./vendor/xiaosongshu/rabbitmq/demo.php"
     ],
     "post-package-update": [
-      "\\Xiaosongshu\\Rabbitmq\\Client::say"
+      "@php ./vendor/xiaosongshu/rabbitmq/demo.php"
     ]
   }
 }
