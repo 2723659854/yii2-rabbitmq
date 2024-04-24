@@ -2,6 +2,9 @@
 
 namespace Xiaosongshu\Rabbitmq;
 
+/**
+ * @purpose 我只是一个demo示例
+ */
 class Demo extends \Xiaosongshu\Rabbitmq\Client
 {
 

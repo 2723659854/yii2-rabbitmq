@@ -7,11 +7,11 @@ use PhpAmqpLib\Exception\AMQPConnectionBlockedException;
 use PhpAmqpLib\Exception\AMQPRuntimeException;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
-use yii\base\Component;
+
 /**
  * @purpose rabbitmq投递和消费
  */
-abstract class   Client extends Component implements RabbiMQInterface
+abstract class   Client implements RabbiMQInterface
 {
 
     /** @var string 服务器地址 */
@@ -226,6 +226,7 @@ abstract class   Client extends Component implements RabbiMQInterface
      */
     public static function send(array $msg, int $time = 0)
     {
+        var_dump('发送');
         self::sendDelay(json_encode($msg), $time);
     }
 
